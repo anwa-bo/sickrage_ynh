@@ -1,0 +1,43 @@
+{
+  "packaging_format": 1,
+  "name": "SickRage",
+  "id": "sickrage",
+  "description": {
+    "en": "Automatic TV shows downloader",
+    "fr": "Téléchargement automatisé de séries TV"
+  },
+  "url": "https://sickrage.github.io/",
+  "license": "free",
+  "maintainer": {
+    "name": "scith",
+    "url": "https://github.com/scith"
+  },
+  "multi_instance": false,
+  "services": [
+    "nginx"
+  ],
+  "requirements": {
+    "yunohost": ">= 2.4.0"
+  },
+  "arguments": {
+    "install": [
+      {
+        "name": "domain",
+        "ask": {
+          "en": "Choose a domain for SickRage",
+          "fr": "Choisissez un domaine pour SickRage"
+        },
+        "example": "mydomain.org"
+      },
+      {
+        "name": "path",
+        "ask": {
+          "en": "Choose a path for SickRage",
+          "fr": "Choisissez un chemin pour SickRage"
+        },
+        "example": "/sickrage",
+        "default": "/sickrage"
+      }
+    ]
+  }
+}

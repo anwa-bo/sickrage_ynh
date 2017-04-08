@@ -1,0 +1,41 @@
+#!/bin/bash
+	#set -eu
+	app=$YNH_APP_INSTANCE_NAME
+
+# Source app helpers
+. /usr/share/yunohost/helpers
+
+# Common variable declaration
+	app_install_dir="/opt/yunohost/$app"
+	app_data_dir="/home/yunohost.app/$app"
+	app_logs_dir="/var/log/$app"
+
+# Retrieve arguments
+	domain=$(ynh_app_setting_get "$app" domain)
+
+# Remove files
+	# Kill app and remove from boot
+	sudo service $app stop
+	
+	# Delete app user
+	sudo deluser $app
+	
+	# Remove sources
+	sudo rm -rf $app_install_dir
+	sudo rm -rf $app_data_dir
+	sudo rm -rf $app_logs_dir
+
+	# Remove data
+	sudo rm -rf $app_data_dir
+	
+# Remove service
+	sudo systemctl disable $app.service
+	sudo rm -f /etc/systemd/system/$app.service
+	sudo systemctl daemon-reload
+	sudo yunohost service remove $app
+
+# Remove nginx configuration file
+	sudo rm -f /etc/nginx/conf.d/$domain.d/$app.conf
+
+# Restart services
+	sudo service nginx reload

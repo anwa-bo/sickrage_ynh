@@ -1,0 +1,25 @@
+#!/bin/bash
+	set -eu
+	app=$YNH_APP_INSTANCE_NAME
+
+# Source app helpers
+. /usr/share/yunohost/helpers
+
+# Common variable declaration
+	app_install_dir="/opt/yunohost/$app"
+	app_data_dir="/home/yunohost.app/$app"
+
+# Retrieve arguments
+	domain=$(ynh_app_setting_get "$app" domain)
+
+# Backup sources
+	ynh_backup "$app_install_dir" "sources"
+
+# Backup data
+	ynh_backup "$app_data_dir" "data"
+	
+# Backup daemon
+	ynh_backup "/etc/systemd/system/$app.service" "$app.service"
+
+# Copy the conf files
+	ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf" "nginx.conf"

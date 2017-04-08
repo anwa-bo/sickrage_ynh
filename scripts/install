@@ -1,0 +1,152 @@
+#!/bin/bash
+
+	set -eu
+	app=$YNH_APP_INSTANCE_NAME
+	source="https://github.com/SickRage/SickRage"
+
+
+# Source app helpers
+. /usr/share/yunohost/helpers
+
+# Retrieve arguments
+	domain=$YNH_APP_ARG_DOMAIN
+	path=$YNH_APP_ARG_PATH
+
+# Correct path: puts a / at the start and nothing at the end
+	if [ "${path:0:1}" != "/" ]; then
+		path="/$path"
+	fi
+	if [ "${path:${#path}-1}" == "/" ] && [ ${#path} -gt 1 ]; then
+		path="${path:0:${#path}-1}"
+	fi
+
+# Check domain/path availability
+	sudo yunohost app checkurl "${domain}${path}" -a "$app" \
+		|| ynh_die "Path not available: ${domain}${path}"
+
+# Destinations definitions
+	app_install_dir="/opt/yunohost/$app"
+	app_data_dir="/home/yunohost.app/$app"
+	app_logs_dir="/var/log/$app"
+	app_config_file="${app_data_dir}/settings.conf"
+	app_pid_file="/var/run/$app/$app.pid"
+	app_python_bin="/usr/bin/python"
+
+# Install Couchpotato
+
+	# Get first available port
+	port=7779
+	sudo yunohost app checkport $port
+	while [[ ! $? -eq 0 ]]; do
+		port=$((port+1))
+		sudo yunohost app checkport $port
+	done
+	ynh_app_setting_set "$app" port "$port"
+	
+	# Make directories
+	sudo mkdir -p $app_data_dir
+	sudo mkdir -p $app_install_dir
+	
+	# Install latest version of app using the fork
+	sudo git clone $source $app_install_dir
+	
+	# Install dependencies (using virtualenv)
+	if [[ $(python --version 2>&1) != Python\ 2* ]]; then
+		app_python_bin=$app_install_dir/bin/python
+		sudo apt-get install -y python-pip python-virtualenv python-dev uwsgi uwsgi-plugin-python
+		sudo virtualenv $app_install_dir
+		sudo bash -c "source $app_install_dir/bin/activate && pip install cheetah"
+	fi
+	
+	# Create app user
+	id -u $app &>/dev/null || sudo useradd --home-dir $app_install_dir --shell /bin/false $app
+
+	# YunoHost multimedia
+		# Add yunohost.multimedia directory
+		wget -qq https://github.com/YunoHost-Apps/yunohost.multimedia/archive/master.zip
+		unzip -qq master.zip
+		sudo ./yunohost.multimedia-master/script/ynh_media_build.sh
+		# Give write access to the yunohost.multimedia directory so that Sickrage can move Series to the Series directory
+		sudo usermod -a -G multimedia $app
+		# Creates the "Movies" subfolder in "Video"
+		sudo mkdir -p "/home/yunohost.multimedia/share/Video/Series"
+		# Fix permissions
+		sudo ./yunohost.multimedia-master/script/ynh_media_build.sh
+
+	# Transmission link: Preferred method is direct RPC link. If not available, switch to watchdir.
+	transmission_rpcurl=""
+	transmission_rpcpassword=""
+	transmission_watchdir=""
+	# Check if Transmission is installed
+	if [[ -z $(sudo yunohost app list -i -f transmission | grep -v 'apps:') ]]; then
+		sudo sed -i "s@__METHOD__@@g"	../conf/sickrage.conf	# Disable Transmission Blackhole and RPC
+		sudo sed -i "s@__RENAMER__@0@g"		../conf/sickrage.conf	# Disable Renamer
+	else
+		echo "Transmission is installed. Trying to link it to CouchPotato..."
+		# Check if the transmission password is in settings
+		if [[ -n $(ynh_app_setting_get transmission rpcpassword || true) ]]; then
+			echo "Transmission will be linked to SickRage directly"
+			transmission_rpcurl="$(ynh_app_setting_get transmission path)transmission"
+			transmission_rpcpassword=$(ynh_app_setting_get transmission rpcpassword)
+			sudo sed -i "s@__METHOD__@transmission@g"			../conf/sickrage.conf	# Enable Transmission RPC
+			sudo sed -i "s@__RENAMER__@1@g"		../conf/sickrage.conf	# Enable Renamer
+			# If transmission uses YunoHost multimedia, use its folder for the renamer
+		else
+			# Check if transmission has watchdir enabled
+			if [[ -n $(ynh_app_setting_get transmission watchdir || true) ]]; then
+				echo "Transmission will be linked to SickRage with watchdir"
+				transmission_watchdir=$(ynh_app_setting_get transmission watchdir)
+				sudo sed -i "s@__METHOD__@blackhole@g"			../conf/sickrage.conf	# Enable Transmission Blackhole
+				sudo sed -i "s@__RENAMER__@1@g"		../conf/sickrage.conf	# Enable Renamer	
+				# If transmission uses YunoHost multimedia, use its folder for the renamer		
+			else
+				echo "Cannot link SickRage to Transmission because Transmission has no RPC password or watchdir available."
+				sudo sed -i "s@__METHOD__@@g"			../conf/sickrage.conf	# Disable Transmission Blackhole and RPC
+				sudo sed -i "s@__RENAMER__@0@g"		../conf/sickrage.conf	# Disable Renamer
+			fi
+		fi
+	fi
+
+	# Configure App
+	sudo sed -i "s@__RPCURL__@$transmission_rpcurl@g" 			../conf/sickrage.conf
+	sudo sed -i "s@__RPCPASSWORD__@$transmission_rpcpassword@g" ../conf/sickrage.conf
+	sudo sed -i "s@__WATCHDIR__@$transmission_watchdir@g" 		../conf/sickrage.conf
+
+	sudo sed -i "s@__PATH__@$path@g" 							../conf/sickrage.conf
+	sudo sed -i "s@__PORT__@$port@g" 							../conf/sickrage.conf
+	sudo sed -i "s@__DATADIR__@$app_data_dir@g" 				../conf/sickrage.conf
+
+	sudo cp -a ../conf/sickrage.conf $app_config_file
+	
+	# Redirect logs directory
+	sudo mkdir -p $app_logs_dir
+	sudo chown -R $app $app_logs_dir
+	sudo chmod +x -R $app_logs_dir
+	sudo sed -i "s@self.log_dir =.*@self.log_dir = '$app_logs_dir'@g" $app_install_dir/SickBeard.py
+
+	# Permissions
+	sudo chown -R $app:$app $app_install_dir
+	sudo chown -R $app:$app $app_data_dir
+	
+	# Configure service
+	sed -i "s@__PYTHON__@$app_python_bin@g" 		../conf/systemd.service
+	sed -i "s@__APPDIR__@$app_install_dir@g" 		../conf/systemd.service
+	sed -i "s@__DATADIR__@$app_data_dir@g" 			../conf/systemd.service
+	sed -i "s@__PIDFILE__@$app_pid_file@g" 			../conf/systemd.service
+	sed -i "s@__CONFIGFILE__@$app_config_file@g" 	../conf/systemd.service
+	sed -i "s@__USER__@$app@g" 						../conf/systemd.service
+	sudo cp ../conf/systemd.service /etc/systemd/system/$app.service
+	sudo systemctl daemon-reload
+	sudo systemctl enable $app
+	sudo yunohost service add $app
+
+	# Start service
+	sudo yunohost service start $app
+
+# Configure Nginx and reload
+	sed -i "s@__PATH__@$path@g" ../conf/nginx.conf
+	sed -i "s@__PORT__@$port@g" ../conf/nginx.conf
+	sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+
+# Reload Nginx and regenerate SSOwat conf
+	sudo service nginx reload
