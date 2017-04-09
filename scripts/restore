@@ -1,4 +1,6 @@
 #!/bin/bash
+
+	set -eu
 	app=$YNH_APP_INSTANCE_NAME
 
 # Source app helpers
@@ -59,10 +61,10 @@
 	wget -qq https://github.com/YunoHost-Apps/yunohost.multimedia/archive/master.zip
 	unzip -qq master.zip
 	sudo ./yunohost.multimedia-master/script/ynh_media_build.sh
-	# Give write access to the yunohost.multimedia directory so that Couchpotato can move Movies to the Movie directory
+	# Give write access to the yunohost.multimedia directory so that SickRage can move Series to the Series directory
 	sudo usermod -a -G multimedia $app
 	# Creates the "Movies" subfolder in "Video"
-	sudo mkdir -p "/home/yunohost.multimedia/share/Video/Movies"
+	sudo mkdir -p "/home/yunohost.multimedia/share/Video/Series"
 	# Fix permissions
 	sudo ./yunohost.multimedia-master/script/ynh_media_build.sh
 
@@ -70,7 +72,7 @@
 	sudo mkdir -p $app_logs_dir
 	sudo chown -R $app $app_logs_dir
 	sudo chmod +x -R $app_logs_dir
-	sudo sed -i "s@self.log_dir =.*@self.log_dir = '$app_logs_dir'@g" $app_install_dir/CouchPotato.py
+	sudo sed -i "s@self.log_dir =.*@self.log_dir = '$app_logs_dir'@g" $app_install_dir/SickBeard.py
 
 # Permissions
 	sudo chown -R $app:$app $app_install_dir
