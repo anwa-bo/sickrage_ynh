@@ -2,7 +2,7 @@
 
 	set -eu
 	app=$YNH_APP_INSTANCE_NAME
-	source="https://github.com/SickRage/SickRage"
+	source="https://github.com/SickChill/SickChill"
 
 
 # Source app helpers
@@ -122,7 +122,7 @@
 	sudo mkdir -p $app_logs_dir
 	sudo chown -R $app $app_logs_dir
 	sudo chmod +x -R $app_logs_dir
-	sudo sed -i "s@self.log_dir =.*@self.log_dir = '$app_logs_dir'@g" $app_install_dir/SiCKRAGE.py
+	sudo sed -i "s@self.log_dir =.*@self.log_dir = '$app_logs_dir'@g" $app_install_dir/SickBeard.py
 
 	# Permissions
 	sudo chown -R $app:$app $app_install_dir

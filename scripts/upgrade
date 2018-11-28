@@ -2,7 +2,7 @@
 
 	set -eu
 	app=$YNH_APP_INSTANCE_NAME
-	source="https://github.com/SickRage/SickRage"
+	source="https://github.com/SickChill/SickChill"
 
 # Backup the current version of the app, restore it if the upgrade fails
 	EXIT_PROPERLY () {
@@ -71,7 +71,7 @@
 
 	# Redirect logs directory
 	if [[ $app_logs_dir != "$app_data_dir"* ]]; then
-		sudo sed -i "s@self.log_dir =.*@self.log_dir = '$app_logs_dir'@g" $app_install_dir/SiCKRAGE.py
+		sudo sed -i "s@self.log_dir =.*@self.log_dir = '$app_logs_dir'@g" $app_install_dir/SickBeard.py
 	fi
 
 	# Permissions
