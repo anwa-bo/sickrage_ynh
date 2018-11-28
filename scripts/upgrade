@@ -71,7 +71,7 @@
 
 	# Redirect logs directory
 	if [[ $app_logs_dir != "$app_data_dir"* ]]; then
-		sudo sed -i "s@self.log_dir =.*@self.log_dir = '$app_logs_dir'@g" $app_install_dir/SickBeard.py
+		sudo sed -i "s@self.log_dir =.*@self.log_dir = '$app_logs_dir'@g" $app_install_dir/SiCKRAGE.py
 	fi
 
 	# Permissions
