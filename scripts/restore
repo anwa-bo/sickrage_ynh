@@ -69,7 +69,7 @@
 	sudo mkdir -p $app_logs_dir
 	sudo chown -R $app $app_logs_dir
 	sudo chmod +x -R $app_logs_dir
-	sudo sed -i "s@self.log_dir =.*@self.log_dir = '$app_logs_dir'@g" $app_install_dir/SickBeard.py
+	sudo sed -i "s@self.log_dir =.*@self.log_dir = '$app_logs_dir'@g" $app_install_dir/SiCKRAGE.py
 
 # Permissions
 	sudo chown -R $app:$app $app_install_dir
