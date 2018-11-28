@@ -3,7 +3,7 @@ Description=SickRage application instance
 After=network.target
 
 [Service]
-ExecStart=__PYTHON__ __APPDIR__/SickBeard.py --quiet --pidfile=__PIDFILE__ --datadir=__DATADIR__ --config=__CONFIGFILE__
+ExecStart=__PYTHON__ __APPDIR__/SiCKRAGE.py --quiet --pidfile=__PIDFILE__ --datadir=__DATADIR__ --config=__CONFIGFILE__
 Type=simple
 User=__USER__
 Group=__USER__
