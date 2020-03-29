@@ -1,6 +1,8 @@
 <img src="https://github.com/binhex/docker-templates/raw/master/binhex/images/sickrage-icon.png" height="32" align="top">
 ### sickrage_ynh
 
+[![Integration level](https://dash.yunohost.org/integration/sickrage.svg)](https://dash.yunohost.org/appci/app/sickrage) ![](https://ci-apps.yunohost.org/ci/badges/sickrage.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/sickrage.maintain.svg)
+
 [![Latest Version](https://img.shields.io/badge/version-_--_-green.svg?style=flat)](https://github.com/YunoHost-Apps/sickrage_ynh/releases)
 [![Status](https://img.shields.io/badge/status-in_progress-yellow.svg?style=flat)](https://github.com/YunoHost-Apps/sickrage_ynh/milestones)
 [![Dependencies](https://img.shields.io/badge/dependencies-includes-lightgrey.svg?style=flat)](https://github.com/YunoHost-Apps/sickrage_ynh#dependencies)
