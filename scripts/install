@@ -78,7 +78,7 @@
 	transmission_rpcpassword=""
 	transmission_watchdir=""
 	# Check if Transmission is installed
-	if [[ -z $(sudo yunohost app list | grep -q 'id: transmission')]]; then
+	if [[ -z $(sudo yunohost app list | grep -q 'id: transmission' )]]; then
 		sudo sed -i "s@__METHOD__@@g"	../conf/sickrage.conf	# Disable Transmission Blackhole and RPC
 		sudo sed -i "s@__RENAMER__@0@g"		../conf/sickrage.conf	# Disable Renamer
 	else
