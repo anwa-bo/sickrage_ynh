@@ -1,4 +1,3 @@
-<img src="https://github.com/binhex/docker-templates/raw/master/binhex/images/sickrage-icon.png" height="32" align="top">
 ### sickrage_ynh
 
 [![Integration level](https://dash.yunohost.org/integration/sickrage.svg)](https://dash.yunohost.org/appci/app/sickrage) ![](https://ci-apps.yunohost.org/ci/badges/sickrage.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/sickrage.maintain.svg)
